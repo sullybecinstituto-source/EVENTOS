@@ -3,288 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Asistencias - Eventos</title>
+    <title>SullyBec Instituto - Control de Asistencias</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .modal-active { display: flex !important; }
-        .hidden-section { display: none !important; }
-        .checked-row { background-color: rgba(16, 185, 129, 0.05); }
-        .strikethrough { text-decoration: line-through; color: #94a3b8; }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .bg-brand-dark { background-color: #1e293b; } /* Azul elegante */
+        .text-gold { color: #d4af37; } /* Dorado */
+        .bg-gold { background-color: #d4af37; }
+        .border-gold { border-color: #d4af37; }
+        
+        .modal { transition: opacity 0.25s ease; }
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .event-card.active {
+            border-left: 4px solid #d4af37;
+            background-color: #f1f5f9;
+        }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-20 font-sans">
+<body class="min-h-screen">
 
-    <!-- Header -->
-    <header class="bg-white border-b sticky top-0 z-20 px-4 py-3 shadow-sm">
-        <div class="max-w-3xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button id="btnBack" class="p-2 hover:bg-slate-100 rounded-full hidden">
-                    <i data-lucide="chevron-left" class="text-slate-600"></i>
-                </button>
-                <div>
-                    <h1 id="mainTitle" class="text-lg font-bold text-slate-800 leading-none">Eventos Gratuitos</h1>
-                    <p id="subTitle" class="text-xs text-slate-500 mt-1 hidden"></p>
-                </div>
-            </div>
-            <button id="btnNewEvent" class="bg-indigo-600 text-white p-2 rounded-lg flex items-center gap-2 text-sm font-semibold px-4 hover:bg-indigo-700 transition-colors">
-                <i data-lucide="plus" class="w-4 h-4"></i> Crear Evento
-            </button>
+    <!-- Pantalla de Carga Elegante -->
+    <div id="loading" class="loading-overlay">
+        <div class="text-center">
+            <img src="https://drive.google.com/uc?export=view&id=1gjM8QJhfynpT0il86P3IRWwD_wMQWcCC" alt="Logo SullyBec" class="h-24 w-auto mx-auto mb-6 opacity-80 animate-pulse">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto"></div>
+            <p class="mt-4 text-slate-300 font-light tracking-widest uppercase text-xs">SullyBec Instituto</p>
         </div>
-    </header>
+    </div>
 
-    <main class="max-w-3xl mx-auto p-4 space-y-4">
-        
-        <!-- VISTA 1: LISTA DE EVENTOS -->
-        <section id="viewEvents" class="space-y-3">
-            <div id="eventsContainer" class="space-y-3">
-                <!-- Los eventos se cargan aquí -->
-                <div class="text-center py-20 text-slate-400">Cargando eventos...</div>
-            </div>
-        </section>
-
-        <!-- VISTA 2: DETALLE DE ASISTENTES (Oculta por defecto) -->
-        <section id="viewAsistentes" class="space-y-4 hidden-section">
-            <!-- Formulario Registro -->
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                <form id="formAsistente" class="space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input id="inputNombre" placeholder="Nombre Completo" required class="w-full p-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                        <input id="inputTel" type="tel" placeholder="Teléfono" class="w-full p-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-indigo-500 text-sm">
+    <div id="app" class="opacity-0 transition-opacity duration-700">
+        <!-- Top Navigation / Header -->
+        <nav class="bg-brand-dark text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-20 items-center">
+                    <div class="flex items-center gap-4">
+                        <img src="https://drive.google.com/uc?export=view&id=1gjM8QJhfynpT0il86P3IRWwD_wMQWcCC" alt="Logo" class="h-12 w-auto">
+                        <div>
+                            <span class="text-xl font-bold tracking-tight block">SullyBec</span>
+                            <span class="text-xs text-gold uppercase tracking-widest font-medium">Instituto</span>
+                        </div>
                     </div>
-                    <button type="submit" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors">
-                        <i data-lucide="user-plus" class="w-5 h-5"></i> Anotar en la Lista
+                    <div class="hidden md:block">
+                        <h2 class="text-sm font-medium text-slate-400 uppercase tracking-tighter">Gestión de Asistencias a Eventos</h2>
+                    </div>
+                    <button id="btnNewEvent" class="bg-gold hover:bg-yellow-600 text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        NUEVO EVENTO
                     </button>
-                </form>
-            </div>
-
-            <!-- Resumen -->
-            <div class="flex items-center justify-between bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                <div class="flex items-center gap-3">
-                    <div id="countBadge" class="bg-white p-2 rounded-lg text-indigo-600 font-bold">0 / 0</div>
-                    <p class="text-sm font-semibold text-indigo-800">Presentes hoy</p>
                 </div>
-                <button id="btnExport" class="text-indigo-600 flex items-center gap-1 text-sm font-bold hover:underline">
-                    <i data-lucide="download" class="w-4 h-4"></i> Exportar Excel
-                </button>
             </div>
+        </nav>
 
-            <!-- Lista de Asistentes -->
-            <div id="asistentesContainer" class="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y overflow-hidden">
-                <!-- Se cargan asistentes aquí -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Sidebar: Lista de Eventos -->
+                <aside class="lg:col-span-3">
+                    <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-slate-100">
+                        <div class="p-4 bg-slate-50 border-b border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Historial de Eventos</h3>
+                        </div>
+                        <ul id="eventList" class="divide-y divide-slate-50 max-h-[60vh] overflow-y-auto">
+                            <!-- Los eventos se inyectan aquí -->
+                        </ul>
+                    </div>
+                </aside>
+
+                <!-- Área Principal: Asistentes -->
+                <section class="lg:col-span-9">
+                    <div id="attendeeSection" class="hidden space-y-6 animate-fadeIn">
+                        
+                        <!-- Info del Evento Seleccionado -->
+                        <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div>
+                                <h2 id="currentEventTitle" class="text-2xl font-bold text-slate-800"></h2>
+                                <p id="currentEventDate" class="text-slate-500 flex items-center gap-2 mt-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span></span>
+                                </p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button id="btnExportExcel" class="flex items-center gap-2 px-4 py-2 border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 rounded-xl text-sm font-semibold transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Exportar Excel
+                                </button>
+                                <button id="btnDeleteEvent" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Eliminar Evento">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Formulario de Registro -->
+                        <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100">
+                            <h4 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                                <span class="w-1 h-4 bg-gold rounded-full"></span>
+                                Registro de Nuevo Asistente
+                            </h4>
+                            <form id="attendeeForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input type="hidden" id="editAttendeeId">
+                                <div>
+                                    <input type="text" id="attName" required placeholder="Nombre Completo" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-gold outline-none">
+                                </div>
+                                <div>
+                                    <input type="tel" id="attPhone" required placeholder="Número de Teléfono" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-gold outline-none">
+                                </div>
+                                <button type="submit" id="btnSubmitAttendee" class="bg-brand-dark text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-all text-sm uppercase tracking-widest">
+                                    Inscribir Asistente
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Tabla de Asistentes -->
+                        <div class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-bold">
+                                    <tr>
+                                        <th class="px-6 py-4 text-center">Asistió</th>
+                                        <th class="px-6 py-4">Nombre Completo</th>
+                                        <th class="px-6 py-4">Contacto</th>
+                                        <th class="px-6 py-4 text-right">Gestión</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendeeTableBody" class="divide-y divide-slate-100">
+                                    <!-- Los asistentes se inyectan aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Estado Vacío -->
+                    <div id="emptyState" class="flex flex-col items-center justify-center p-20 bg-white rounded-3xl border-2 border-dashed border-slate-200 card-shadow">
+                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800">SullyBec Instituto</h3>
+                        <p class="text-slate-400 mt-2 text-center max-w-sm">Bienvenido al sistema de gestión. Selecciona un evento o crea uno nuevo para comenzar.</p>
+                    </div>
+                </section>
             </div>
-        </section>
-    </main>
+        </main>
+    </div>
 
-    <!-- Modal Nuevo Evento -->
-    <div id="modalEvent" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-end sm:items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
-            <h2 class="text-xl font-bold text-slate-800 mb-4">Nuevo Evento</h2>
-            <form id="formNewEvent" class="space-y-4">
-                <input id="eventTitle" placeholder="Nombre (Feria, Taller, etc)" required class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500">
-                <input id="eventDate" type="date" required class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500">
-                <div class="flex gap-3 pt-2">
-                    <button type="button" id="btnCancelModal" class="flex-1 py-4 font-bold text-slate-500">Cancelar</button>
-                    <button type="submit" class="flex-1 bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-200">Crear</button>
+    <!-- Modal Evento -->
+    <div id="modalEvent" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-100">
+            <h3 class="text-2xl font-bold text-slate-800 mb-2">Nuevo Evento</h3>
+            <p class="text-slate-500 text-sm mb-6">Define el nombre y fecha de tu actividad.</p>
+            <form id="eventForm" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nombre del Evento</label>
+                    <input type="text" id="evName" required class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-gold outline-none" placeholder="Ej. Taller de Liderazgo">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Fecha</label>
+                    <input type="date" id="evDate" required class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-gold outline-none">
+                </div>
+                <div class="flex flex-col gap-3 pt-4">
+                    <button type="submit" class="w-full bg-gold text-white rounded-xl py-3 font-bold hover:bg-yellow-600 transition-all uppercase tracking-widest shadow-lg shadow-yellow-600/20 text-sm">Crear Evento</button>
+                    <button type="button" id="btnCloseEventModal" class="w-full py-3 text-slate-400 font-medium hover:text-slate-600 transition-all text-sm">Cancelar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración Global
+        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'event-manager-web';
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sullybec-instituto-v1';
 
-        let currentEvent = null;
-        let unsubscribeAsistentes = null;
+        let user = null;
+        let currentEventId = null;
+        let events = [];
+        let attendees = [];
+        let unsubscribeAttendees = null;
 
-        // Inicializar iconos
-        lucide.createIcons();
+        // UI HELPERS
+        const showApp = () => {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('app').classList.replace('opacity-0', 'opacity-100');
+        };
 
-        // Autenticación Anónima
-        signInAnonymously(auth).catch(console.error);
+        const showError = (msg) => {
+            document.getElementById('loading').innerHTML = `<div class="p-8 bg-white rounded-2xl shadow-xl text-center max-w-xs mx-4">
+                <div class="text-red-500 mb-4 font-bold text-xl italic">!</div>
+                <p class="text-slate-600 text-sm mb-6">${msg}</p>
+                <button onclick="location.reload()" class="w-full py-3 bg-brand-dark text-white rounded-xl text-sm font-bold">Intentar de nuevo</button>
+            </div>`;
+        };
 
-        // --- MANEJO DE EVENTOS ---
-        const eventsCol = collection(db, 'artifacts', appId, 'public', 'data', 'eventos');
-
-        onSnapshot(eventsCol, (snapshot) => {
-            const container = document.getElementById('eventsContainer');
-            container.innerHTML = '';
-            
-            const eventos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
-                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-            if (eventos.length === 0) {
-                container.innerHTML = '<div class="text-center py-20 text-slate-400">No hay eventos. ¡Crea el primero!</div>';
-                return;
-            }
-
-            eventos.forEach(ev => {
-                const div = document.createElement('div');
-                div.className = 'bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-indigo-300 transition-all group';
-                div.innerHTML = `
-                    <div class="flex items-center gap-4 flex-1" onclick="openEvent('${ev.id}', '${ev.nombre}', '${ev.fecha}')">
-                        <div class="bg-indigo-50 p-3 rounded-lg text-indigo-600">
-                            <i data-lucide="calendar"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-bold text-slate-800">${ev.nombre}</h2>
-                            <p class="text-xs text-slate-500">${ev.fecha}</p>
-                        </div>
-                    </div>
-                    <button class="p-2 text-slate-300 hover:text-red-500 delete-ev-btn" data-id="${ev.id}">
-                        <i data-lucide="trash-2"></i>
-                    </button>
-                `;
-                container.appendChild(div);
-            });
-            
-            lucide.createIcons();
-
-            // Botones eliminar evento
-            document.querySelectorAll('.delete-ev-btn').forEach(btn => {
-                btn.onclick = async (e) => {
-                    e.stopPropagation();
-                    if (confirm('¿Eliminar evento y todos sus registros?')) {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventos', btn.dataset.id));
-                    }
+        // AUTH
+        async function authenticate(retries = 0) {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
                 }
-            });
+            } catch (error) {
+                if (retries < 5) {
+                    setTimeout(() => authenticate(retries + 1), Math.pow(2, retries) * 1000);
+                } else {
+                    showError("No pudimos conectar con el servidor de seguridad.");
+                }
+            }
+        }
+
+        authenticate();
+
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            if (user) {
+                subscribeToEvents();
+                showApp();
+            }
         });
 
-        // --- MANEJO DE ASISTENTES ---
-        window.openEvent = (id, nombre, fecha) => {
-            currentEvent = { id, nombre, fecha };
-            document.getElementById('viewEvents').classList.add('hidden-section');
-            document.getElementById('viewAsistentes').classList.remove('hidden-section');
-            document.getElementById('btnBack').classList.remove('hidden');
-            document.getElementById('btnNewEvent').classList.add('hidden');
-            document.getElementById('mainTitle').innerText = nombre;
-            document.getElementById('subTitle').innerText = fecha;
-            document.getElementById('subTitle').classList.remove('hidden');
+        // DATOS
+        function subscribeToEvents() {
+            const q = collection(db, 'artifacts', appId, 'public', 'data', 'eventos');
+            onSnapshot(q, (snapshot) => {
+                events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                events.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                renderEvents();
+            }, (err) => console.error(err));
+        }
 
-            // Escuchar asistentes
-            const asistCol = collection(db, 'artifacts', appId, 'public', 'data', `asistentes_${id}`);
-            
-            if (unsubscribeAsistentes) unsubscribeAsistentes();
+        function subscribeToAttendees(eventId) {
+            if (unsubscribeAttendees) unsubscribeAttendees();
+            const q = collection(db, 'artifacts', appId, 'public', 'data', `asistentes_${eventId}`);
+            unsubscribeAttendees = onSnapshot(q, (snapshot) => {
+                attendees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                attendees.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                renderAttendees();
+            }, (err) => console.error(err));
+        }
 
-            unsubscribeAsistentes = onSnapshot(asistCol, (snapshot) => {
-                const container = document.getElementById('asistentesContainer');
-                container.innerHTML = '';
-                
-                const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .sort((a, b) => a.nombre.localeCompare(b.nombre));
-
-                const total = list.length;
-                const presentes = list.filter(a => a.asistio).length;
-                document.getElementById('countBadge').innerText = `${presentes} / ${total}`;
-
-                list.forEach(asist => {
-                    const row = document.createElement('div');
-                    row.className = `p-4 flex items-center gap-4 transition-colors ${asist.asistio ? 'checked-row' : ''}`;
-                    row.innerHTML = `
-                        <button class="toggle-asistencia p-1 rounded-full ${asist.asistio ? 'text-emerald-500' : 'text-slate-300'}" data-id="${asist.id}" data-state="${asist.asistio}">
-                            <i data-lucide="${asist.asistio ? 'check-circle-2' : 'circle'}" class="w-7 h-7"></i>
-                        </button>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-bold truncate ${asist.asistio ? 'strikethrough' : 'text-slate-800'}">${asist.nombre}</h3>
-                            <p class="text-xs text-slate-500 flex items-center gap-1">
-                                <i data-lucide="phone" class="w-3 h-3"></i> ${asist.telefono || 'Sin tel.'}
-                            </p>
-                        </div>
-                        <button class="p-2 text-slate-300 hover:text-red-500 delete-asist-btn" data-id="${asist.id}">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    `;
-                    container.appendChild(row);
-                });
-
-                lucide.createIcons();
-
-                // Eventos de botones asistentes
-                document.querySelectorAll('.toggle-asistencia').forEach(btn => {
-                    btn.onclick = () => {
-                        const isChecked = btn.dataset.state === 'true';
-                        updateDoc(doc(db, 'artifacts', appId, 'public', 'data', `asistentes_${id}`, btn.dataset.id), {
-                            asistio: !isChecked
-                        });
-                    };
-                });
-
-                document.querySelectorAll('.delete-asist-btn').forEach(btn => {
-                    btn.onclick = () => {
-                        if (confirm('¿Eliminar asistente?')) {
-                            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', `asistentes_${id}`, btn.dataset.id));
-                        }
-                    };
-                });
-
-                // Exportar Excel de la lista actual
-                document.getElementById('btnExport').onclick = () => {
-                    const data = list.map(a => ({
-                        'Nombre': a.nombre,
-                        'Teléfono': a.telefono,
-                        'Asistió': a.asistio ? 'SÍ' : 'NO',
-                        'Evento': nombre,
-                        'Fecha': fecha
-                    }));
-                    const ws = XLSX.utils.json_to_sheet(data);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "Asistencia");
-                    XLSX.writeFile(wb, `${nombre}_asistentes.xlsx`);
+        // RENDERIZADO
+        function renderEvents() {
+            const list = document.getElementById('eventList');
+            list.innerHTML = events.length ? '' : '<li class="p-6 text-center text-slate-400 text-xs italic">Crea tu primer evento</li>';
+            events.forEach(ev => {
+                const isActive = currentEventId === ev.id;
+                const li = document.createElement('li');
+                li.className = `p-4 cursor-pointer transition-all event-card ${isActive ? 'active' : 'hover:bg-slate-50'}`;
+                li.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-slate-800 text-sm block truncate pr-2">${ev.nombre}</span>
+                        <span class="text-[10px] text-slate-400 font-mono">${ev.fecha}</span>
+                    </div>
+                `;
+                li.onclick = () => {
+                    currentEventId = ev.id;
+                    document.getElementById('attendeeSection').classList.remove('hidden');
+                    document.getElementById('emptyState').classList.add('hidden');
+                    document.getElementById('currentEventTitle').innerText = ev.nombre;
+                    document.getElementById('currentEventDate').querySelector('span').innerText = ev.fecha;
+                    renderEvents();
+                    subscribeToAttendees(ev.id);
                 };
+                list.appendChild(li);
             });
-        };
+        }
 
-        // --- BOTONES DE NAVEGACIÓN ---
-        document.getElementById('btnBack').onclick = () => {
-            currentEvent = null;
-            document.getElementById('viewEvents').classList.remove('hidden-section');
-            document.getElementById('viewAsistentes').classList.add('hidden-section');
-            document.getElementById('btnBack').classList.add('hidden');
-            document.getElementById('btnNewEvent').classList.remove('hidden');
-            document.getElementById('mainTitle').innerText = 'Eventos Gratuitos';
-            document.getElementById('subTitle').classList.add('hidden');
-            if (unsubscribeAsistentes) unsubscribeAsistentes();
-        };
+        function renderAttendees() {
+            const tbody = document.getElementById('attendeeTableBody');
+            tbody.innerHTML = attendees.length ? '' : '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic text-sm">Aún no hay inscritos en este evento.</td></tr>';
+            attendees.forEach(att => {
+                const tr = document.createElement('tr');
+                tr.className = 'group transition-colors hover:bg-slate-50/50';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 text-center">
+                        <input type="checkbox" ${att.asistio ? 'checked' : ''} 
+                            class="w-5 h-5 cursor-pointer rounded-md border-slate-300 text-gold focus:ring-gold"
+                            onchange="window.updateStatus('${att.id}', this.checked)">
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-slate-700 text-sm">${att.nombre}</td>
+                    <td class="px-6 py-4 text-slate-500 font-mono text-xs">${att.telefono}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="window.edit('${att.id}')" class="text-slate-400 hover:text-gold transition-colors p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            </button>
+                            <button onclick="window.del('${att.id}')" class="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
-        // Modal manejo
-        document.getElementById('btnNewEvent').onclick = () => document.getElementById('modalEvent').classList.add('modal-active');
-        document.getElementById('btnCancelModal').onclick = () => document.getElementById('modalEvent').classList.remove('modal-active');
+        // ACCIONES
+        document.getElementById('btnNewEvent').onclick = () => document.getElementById('modalEvent').classList.remove('hidden');
+        document.getElementById('btnCloseEventModal').onclick = () => document.getElementById('modalEvent').classList.add('hidden');
 
-        // Submit nuevo evento
-        document.getElementById('formNewEvent').onsubmit = async (e) => {
+        document.getElementById('eventForm').onsubmit = async (e) => {
             e.preventDefault();
-            const nombre = document.getElementById('eventTitle').value;
-            const fecha = document.getElementById('eventDate').value;
-            await addDoc(eventsCol, { nombre, fecha, creadoEn: new Date().toISOString() });
-            document.getElementById('formNewEvent').reset();
-            document.getElementById('modalEvent').classList.remove('modal-active');
+            const data = { nombre: document.getElementById('evName').value, fecha: document.getElementById('evDate').value, ts: Date.now() };
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'eventos'), data);
+            document.getElementById('modalEvent').classList.add('hidden');
+            e.target.reset();
         };
 
-        // Submit nuevo asistente
-        document.getElementById('formAsistente').onsubmit = async (e) => {
+        document.getElementById('attendeeForm').onsubmit = async (e) => {
             e.preventDefault();
-            if (!currentEvent) return;
-            const nombre = document.getElementById('inputNombre').value;
-            const telefono = document.getElementById('inputTel').value;
-            const asistCol = collection(db, 'artifacts', appId, 'public', 'data', `asistentes_${currentEvent.id}`);
-            await addDoc(asistCol, { nombre, telefono, asistio: false, registradoEn: new Date().toISOString() });
-            document.getElementById('formAsistente').reset();
-            document.getElementById('inputNombre').focus();
+            if (!currentEventId) return;
+            const id = document.getElementById('editAttendeeId').value;
+            const data = { nombre: document.getElementById('attName').value, telefono: document.getElementById('attPhone').value, asistio: false };
+            const path = `asistentes_${currentEventId}`;
+            
+            if (id) {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', path, id), data);
+                document.getElementById('editAttendeeId').value = '';
+                document.getElementById('btnSubmitAttendee').innerText = 'Inscribir Asistente';
+            } else {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', path), data);
+            }
+            e.target.reset();
         };
 
+        document.getElementById('btnExportExcel').onclick = () => {
+            const data = attendees.map(a => ({ "Nombre Completo": a.nombre, "Teléfono": a.telefono, "Asistencia": a.asistio ? 'SÍ' : 'NO' }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Asistentes");
+            XLSX.writeFile(wb, `SullyBec_${document.getElementById('currentEventTitle').innerText}.xlsx`);
+        };
+
+        document.getElementById('btnDeleteEvent').onclick = async () => {
+            if (confirm("¿Estás seguro de eliminar este evento y todos sus datos?") && currentEventId) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventos', currentEventId));
+                location.reload();
+            }
+        };
+
+        window.updateStatus = async (id, val) => {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', `asistentes_${currentEventId}`, id), { asistio: val });
+        };
+        window.del = async (id) => {
+            if (confirm("¿Eliminar este registro permanente?"))
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', `asistentes_${currentEventId}`, id));
+        };
+        window.edit = (id) => {
+            const a = attendees.find(x => x.id === id);
+            document.getElementById('attName').value = a.nombre;
+            document.getElementById('attPhone').value = a.telefono;
+            document.getElementById('editAttendeeId').value = id;
+            document.getElementById('btnSubmitAttendee').innerText = 'Guardar Cambios';
+            document.getElementById('attName').focus();
+        };
     </script>
 </body>
 </html>
