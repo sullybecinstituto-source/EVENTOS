@@ -12,57 +12,74 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
         }
-        .bg-brand-dark { background-color: #1e293b; } /* Azul elegante */
-        .text-gold { color: #d4af37; } /* Dorado */
-        .bg-gold { background-color: #d4af37; }
-        .border-gold { border-color: #d4af37; }
+        .bg-brand-dark { background-color: #0f172a; } 
+        .text-gold { color: #c5a059; } 
+        .bg-gold { background-color: #c5a059; }
         
-        .modal { transition: opacity 0.25s ease; }
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: #1e293b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
         .card-shadow {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .event-card.active {
-            border-left: 4px solid #d4af37;
+            border-left: 4px solid #c5a059;
             background-color: #f1f5f9;
+        }
+
+        /* Estilo para el contenedor del logo */
+        .logo-container {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .logo-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Fallback si la imagen falla */
+        .logo-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #c5a059;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
         }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- Pantalla de Carga Elegante -->
-    <div id="loading" class="loading-overlay">
-        <div class="text-center">
-            <img src="https://drive.google.com/uc?export=view&id=1gjM8QJhfynpT0il86P3IRWwD_wMQWcCC" alt="Logo SullyBec" class="h-24 w-auto mx-auto mb-6 opacity-80 animate-pulse">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto"></div>
-            <p class="mt-4 text-slate-300 font-light tracking-widest uppercase text-xs">SullyBec Instituto</p>
-        </div>
-    </div>
-
-    <div id="app" class="opacity-0 transition-opacity duration-700">
-        <!-- Top Navigation / Header -->
-        <nav class="bg-brand-dark text-white shadow-lg">
+    <div id="app">
+        <!-- Header -->
+        <nav class="bg-brand-dark text-white shadow-xl border-b border-white/5">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-20 items-center">
                     <div class="flex items-center gap-4">
-                        <img src="https://drive.google.com/uc?export=view&id=1gjM8QJhfynpT0il86P3IRWwD_wMQWcCC" alt="Logo" class="h-12 w-auto">
-                        <div>
-                            <span class="text-xl font-bold tracking-tight block">SullyBec</span>
-                            <span class="text-xs text-gold uppercase tracking-widest font-medium">Instituto</span>
+                        <!-- Logo con Manejo de Errores -->
+                        <div class="logo-container">
+                            <img id="mainLogo" 
+                                 src="https://drive.google.com/uc?export=view&id=1gjM8QJhfynpT0il86P3IRWwD_wMQWcCC" 
+                                 alt="SullyBec" 
+                                 class="logo-img"
+                                 onerror="this.style.display='none'; document.getElementById('logoFallback').classList.remove('hidden')">
+                            <div id="logoFallback" class="logo-placeholder hidden">S</div>
+                        </div>
+                        <div class="border-l border-white/10 pl-4">
+                            <h1 class="text-xl font-bold tracking-tight leading-none">SullyBec</h1>
+                            <span class="text-[10px] text-gold uppercase tracking-[0.2em] font-bold">Instituto</span>
                         </div>
                     </div>
-                    <div class="hidden md:block">
-                        <h2 class="text-sm font-medium text-slate-400 uppercase tracking-tighter">Gestión de Asistencias a Eventos</h2>
-                    </div>
-                    <button id="btnNewEvent" class="bg-gold hover:bg-yellow-600 text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                    
+                    <button id="btnNewEvent" class="bg-gold hover:opacity-90 text-white px-6 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-black/20">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                         </svg>
@@ -75,41 +92,42 @@
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                <!-- Sidebar: Lista de Eventos -->
+                <!-- Lista de Eventos (Sidebar) -->
                 <aside class="lg:col-span-3">
-                    <div class="bg-white rounded-2xl card-shadow overflow-hidden border border-slate-100">
-                        <div class="p-4 bg-slate-50 border-b border-slate-100">
-                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Historial de Eventos</h3>
+                    <div class="bg-white rounded-xl card-shadow border border-slate-200 overflow-hidden">
+                        <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Historial</span>
+                            <span id="eventCount" class="bg-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-bold">0</span>
                         </div>
                         <ul id="eventList" class="divide-y divide-slate-50 max-h-[60vh] overflow-y-auto">
-                            <!-- Los eventos se inyectan aquí -->
+                            <!-- Eventos -->
                         </ul>
                     </div>
                 </aside>
 
-                <!-- Área Principal: Asistentes -->
+                <!-- Panel Principal -->
                 <section class="lg:col-span-9">
-                    <div id="attendeeSection" class="hidden space-y-6 animate-fadeIn">
+                    <div id="attendeeSection" class="hidden space-y-6">
                         
-                        <!-- Info del Evento Seleccionado -->
-                        <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <!-- Encabezado de Evento -->
+                        <div class="bg-white p-8 rounded-xl card-shadow border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
-                                <h2 id="currentEventTitle" class="text-2xl font-bold text-slate-800"></h2>
-                                <p id="currentEventDate" class="text-slate-500 flex items-center gap-2 mt-1">
+                                <h2 id="currentEventTitle" class="text-2xl font-bold text-slate-900 tracking-tight"></h2>
+                                <p id="currentEventDate" class="text-slate-400 text-sm mt-1 flex items-center gap-2 font-medium">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                     <span></span>
                                 </p>
                             </div>
-                            <div class="flex gap-3">
-                                <button id="btnExportExcel" class="flex items-center gap-2 px-4 py-2 border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 rounded-xl text-sm font-semibold transition-all">
+                            <div class="flex gap-2">
+                                <button id="btnExportExcel" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>
-                                    Exportar Excel
+                                    EXCEL
                                 </button>
-                                <button id="btnDeleteEvent" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Eliminar Evento">
+                                <button id="btnDeleteEvent" class="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white p-2.5 rounded-lg transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
@@ -117,76 +135,65 @@
                             </div>
                         </div>
 
-                        <!-- Formulario de Registro -->
-                        <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100">
-                            <h4 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2 uppercase tracking-wide">
-                                <span class="w-1 h-4 bg-gold rounded-full"></span>
-                                Registro de Nuevo Asistente
-                            </h4>
+                        <!-- Registro -->
+                        <div class="bg-white p-6 rounded-xl card-shadow border border-slate-200">
                             <form id="attendeeForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <input type="hidden" id="editAttendeeId">
-                                <div>
-                                    <input type="text" id="attName" required placeholder="Nombre Completo" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-gold outline-none">
-                                </div>
-                                <div>
-                                    <input type="tel" id="attPhone" required placeholder="Número de Teléfono" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-gold outline-none">
-                                </div>
-                                <button type="submit" id="btnSubmitAttendee" class="bg-brand-dark text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-all text-sm uppercase tracking-widest">
-                                    Inscribir Asistente
+                                <input type="text" id="attName" required placeholder="Nombre Completo" class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gold outline-none">
+                                <input type="tel" id="attPhone" required placeholder="Teléfono / WhatsApp" class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-gold outline-none">
+                                <button type="submit" id="btnSubmitAttendee" class="bg-brand-dark text-white font-bold py-3 rounded-lg hover:bg-black transition-all text-xs uppercase tracking-widest">
+                                    Registrar Asistente
                                 </button>
                             </form>
                         </div>
 
-                        <!-- Tabla de Asistentes -->
-                        <div class="bg-white rounded-2xl card-shadow border border-slate-100 overflow-hidden">
+                        <!-- Tabla -->
+                        <div class="bg-white rounded-xl card-shadow border border-slate-200 overflow-hidden">
                             <table class="w-full text-left">
-                                <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-bold">
+                                <thead class="bg-slate-50 border-b border-slate-100 text-[10px] uppercase font-black text-slate-400 tracking-widest">
                                     <tr>
                                         <th class="px-6 py-4 text-center">Asistió</th>
-                                        <th class="px-6 py-4">Nombre Completo</th>
-                                        <th class="px-6 py-4">Contacto</th>
-                                        <th class="px-6 py-4 text-right">Gestión</th>
+                                        <th class="px-6 py-4">Nombre</th>
+                                        <th class="px-6 py-4">Teléfono</th>
+                                        <th class="px-6 py-4 text-right">Acción</th>
                                     </tr>
                                 </thead>
-                                <tbody id="attendeeTableBody" class="divide-y divide-slate-100">
-                                    <!-- Los asistentes se inyectan aquí -->
+                                <tbody id="attendeeTableBody" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Filas -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Estado Vacío -->
-                    <div id="emptyState" class="flex flex-col items-center justify-center p-20 bg-white rounded-3xl border-2 border-dashed border-slate-200 card-shadow">
-                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
+                    <!-- Estado Inicial -->
+                    <div id="emptyState" class="flex flex-col items-center justify-center p-20 bg-white rounded-xl border border-slate-200 card-shadow text-center">
+                        <div class="w-24 h-24 mb-6 bg-slate-50 rounded-full flex items-center justify-center opacity-50">
+                             <img src="https://drive.google.com/uc?export=view&id=1gjM8QJhfynpT0il86P3IRWwD_wMQWcCC" class="h-12 w-auto grayscale">
                         </div>
                         <h3 class="text-xl font-bold text-slate-800">SullyBec Instituto</h3>
-                        <p class="text-slate-400 mt-2 text-center max-w-sm">Bienvenido al sistema de gestión. Selecciona un evento o crea uno nuevo para comenzar.</p>
+                        <p class="text-slate-400 mt-2 max-w-xs text-sm">Seleccione un evento o cree uno nuevo para gestionar las asistencias.</p>
                     </div>
                 </section>
             </div>
         </main>
     </div>
 
-    <!-- Modal Evento -->
-    <div id="modalEvent" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-100">
-            <h3 class="text-2xl font-bold text-slate-800 mb-2">Nuevo Evento</h3>
-            <p class="text-slate-500 text-sm mb-6">Define el nombre y fecha de tu actividad.</p>
-            <form id="eventForm" class="space-y-5">
+    <!-- Modal Nuevo Evento -->
+    <div id="modalEvent" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-8 shadow-2xl border border-slate-100">
+            <h3 class="text-xl font-bold text-slate-900 mb-6">Nuevo Evento</h3>
+            <form id="eventForm" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nombre del Evento</label>
-                    <input type="text" id="evName" required class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-gold outline-none" placeholder="Ej. Taller de Liderazgo">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nombre</label>
+                    <input type="text" id="evName" required class="w-full border border-slate-200 rounded-lg p-3 focus:ring-2 focus:ring-gold outline-none text-sm" placeholder="Ej. Taller de Maquillaje">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Fecha</label>
-                    <input type="date" id="evDate" required class="w-full border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-gold outline-none">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Fecha</label>
+                    <input type="date" id="evDate" required class="w-full border border-slate-200 rounded-lg p-3 focus:ring-2 focus:ring-gold outline-none text-sm">
                 </div>
-                <div class="flex flex-col gap-3 pt-4">
-                    <button type="submit" class="w-full bg-gold text-white rounded-xl py-3 font-bold hover:bg-yellow-600 transition-all uppercase tracking-widest shadow-lg shadow-yellow-600/20 text-sm">Crear Evento</button>
-                    <button type="button" id="btnCloseEventModal" class="w-full py-3 text-slate-400 font-medium hover:text-slate-600 transition-all text-sm">Cancelar</button>
+                <div class="flex flex-col gap-2 pt-4">
+                    <button type="submit" class="w-full bg-gold text-white rounded-lg py-3 font-bold hover:opacity-90 transition-all text-xs uppercase tracking-widest">Crear Ahora</button>
+                    <button type="button" id="btnCloseEventModal" class="w-full py-3 text-slate-400 font-bold hover:text-slate-600 transition-all text-[10px] uppercase tracking-widest">Cerrar</button>
                 </div>
             </form>
         </div>
@@ -197,93 +204,60 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sullybec-instituto-v1';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sullybec-instituto';
 
-        let user = null;
         let currentEventId = null;
         let events = [];
         let attendees = [];
         let unsubscribeAttendees = null;
 
-        // UI HELPERS
-        const showApp = () => {
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('app').classList.replace('opacity-0', 'opacity-100');
-        };
-
-        const showError = (msg) => {
-            document.getElementById('loading').innerHTML = `<div class="p-8 bg-white rounded-2xl shadow-xl text-center max-w-xs mx-4">
-                <div class="text-red-500 mb-4 font-bold text-xl italic">!</div>
-                <p class="text-slate-600 text-sm mb-6">${msg}</p>
-                <button onclick="location.reload()" class="w-full py-3 bg-brand-dark text-white rounded-xl text-sm font-bold">Intentar de nuevo</button>
-            </div>`;
-        };
-
-        // AUTH
-        async function authenticate(retries = 0) {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                if (retries < 5) {
-                    setTimeout(() => authenticate(retries + 1), Math.pow(2, retries) * 1000);
-                } else {
-                    showError("No pudimos conectar con el servidor de seguridad.");
-                }
+        async function initAuth() {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
             }
         }
 
-        authenticate();
+        initAuth();
 
         onAuthStateChanged(auth, (u) => {
-            user = u;
-            if (user) {
-                subscribeToEvents();
-                showApp();
-            }
+            if (u) subscribeToEvents();
         });
 
-        // DATOS
         function subscribeToEvents() {
-            const q = collection(db, 'artifacts', appId, 'public', 'data', 'eventos');
-            onSnapshot(q, (snapshot) => {
-                events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'eventos'), (snap) => {
+                events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 events.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                document.getElementById('eventCount').innerText = events.length;
                 renderEvents();
-            }, (err) => console.error(err));
+            });
         }
 
         function subscribeToAttendees(eventId) {
             if (unsubscribeAttendees) unsubscribeAttendees();
             const q = collection(db, 'artifacts', appId, 'public', 'data', `asistentes_${eventId}`);
-            unsubscribeAttendees = onSnapshot(q, (snapshot) => {
-                attendees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            unsubscribeAttendees = onSnapshot(q, (snap) => {
+                attendees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 attendees.sort((a, b) => a.nombre.localeCompare(b.nombre));
                 renderAttendees();
-            }, (err) => console.error(err));
+            });
         }
 
-        // RENDERIZADO
         function renderEvents() {
             const list = document.getElementById('eventList');
-            list.innerHTML = events.length ? '' : '<li class="p-6 text-center text-slate-400 text-xs italic">Crea tu primer evento</li>';
+            list.innerHTML = events.length ? '' : '<li class="p-6 text-center text-slate-400 text-[10px] italic">No hay eventos</li>';
             events.forEach(ev => {
                 const isActive = currentEventId === ev.id;
                 const li = document.createElement('li');
                 li.className = `p-4 cursor-pointer transition-all event-card ${isActive ? 'active' : 'hover:bg-slate-50'}`;
                 li.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <span class="font-bold text-slate-800 text-sm block truncate pr-2">${ev.nombre}</span>
-                        <span class="text-[10px] text-slate-400 font-mono">${ev.fecha}</span>
-                    </div>
+                    <p class="font-bold text-slate-800 text-sm truncate">${ev.nombre}</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">${ev.fecha}</p>
                 `;
                 li.onclick = () => {
                     currentEventId = ev.id;
@@ -300,40 +274,32 @@
 
         function renderAttendees() {
             const tbody = document.getElementById('attendeeTableBody');
-            tbody.innerHTML = attendees.length ? '' : '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic text-sm">Aún no hay inscritos en este evento.</td></tr>';
+            tbody.innerHTML = attendees.length ? '' : '<tr><td colspan="4" class="p-10 text-center text-slate-400 italic">Lista vacía</td></tr>';
             attendees.forEach(att => {
                 const tr = document.createElement('tr');
-                tr.className = 'group transition-colors hover:bg-slate-50/50';
                 tr.innerHTML = `
                     <td class="px-6 py-4 text-center">
                         <input type="checkbox" ${att.asistio ? 'checked' : ''} 
-                            class="w-5 h-5 cursor-pointer rounded-md border-slate-300 text-gold focus:ring-gold"
+                            class="w-5 h-5 rounded border-slate-300 text-gold focus:ring-gold"
                             onchange="window.updateStatus('${att.id}', this.checked)">
                     </td>
-                    <td class="px-6 py-4 font-semibold text-slate-700 text-sm">${att.nombre}</td>
-                    <td class="px-6 py-4 text-slate-500 font-mono text-xs">${att.telefono}</td>
+                    <td class="px-6 py-4 font-bold text-slate-700">${att.nombre}</td>
+                    <td class="px-6 py-4 text-slate-400 font-mono text-xs">${att.telefono}</td>
                     <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-2">
-                            <button onclick="window.edit('${att.id}')" class="text-slate-400 hover:text-gold transition-colors p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                            </button>
-                            <button onclick="window.del('${att.id}')" class="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            </button>
-                        </div>
+                        <button onclick="window.edit('${att.id}')" class="text-slate-300 hover:text-gold mr-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
+                        <button onclick="window.del('${att.id}')" class="text-slate-300 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // ACCIONES
         document.getElementById('btnNewEvent').onclick = () => document.getElementById('modalEvent').classList.remove('hidden');
         document.getElementById('btnCloseEventModal').onclick = () => document.getElementById('modalEvent').classList.add('hidden');
 
         document.getElementById('eventForm').onsubmit = async (e) => {
             e.preventDefault();
-            const data = { nombre: document.getElementById('evName').value, fecha: document.getElementById('evDate').value, ts: Date.now() };
+            const data = { nombre: document.getElementById('evName').value, fecha: document.getElementById('evDate').value };
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'eventos'), data);
             document.getElementById('modalEvent').classList.add('hidden');
             e.target.reset();
@@ -341,15 +307,13 @@
 
         document.getElementById('attendeeForm').onsubmit = async (e) => {
             e.preventDefault();
-            if (!currentEventId) return;
             const id = document.getElementById('editAttendeeId').value;
             const data = { nombre: document.getElementById('attName').value, telefono: document.getElementById('attPhone').value, asistio: false };
             const path = `asistentes_${currentEventId}`;
-            
             if (id) {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', path, id), data);
                 document.getElementById('editAttendeeId').value = '';
-                document.getElementById('btnSubmitAttendee').innerText = 'Inscribir Asistente';
+                document.getElementById('btnSubmitAttendee').innerText = 'Registrar Asistente';
             } else {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', path), data);
             }
@@ -357,7 +321,7 @@
         };
 
         document.getElementById('btnExportExcel').onclick = () => {
-            const data = attendees.map(a => ({ "Nombre Completo": a.nombre, "Teléfono": a.telefono, "Asistencia": a.asistio ? 'SÍ' : 'NO' }));
+            const data = attendees.map(a => ({ "Nombre": a.nombre, "Teléfono": a.telefono, "Asistencia": a.asistio ? 'SÍ' : 'NO' }));
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Asistentes");
@@ -365,7 +329,7 @@
         };
 
         document.getElementById('btnDeleteEvent').onclick = async () => {
-            if (confirm("¿Estás seguro de eliminar este evento y todos sus datos?") && currentEventId) {
+            if (confirm("¿Eliminar este evento?") && currentEventId) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventos', currentEventId));
                 location.reload();
             }
@@ -375,7 +339,7 @@
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', `asistentes_${currentEventId}`, id), { asistio: val });
         };
         window.del = async (id) => {
-            if (confirm("¿Eliminar este registro permanente?"))
+            if (confirm("¿Eliminar registro?"))
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', `asistentes_${currentEventId}`, id));
         };
         window.edit = (id) => {
